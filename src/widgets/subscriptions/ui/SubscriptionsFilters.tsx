@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite'
-import { Filter, Search, X } from 'lucide-react'
+import { Filter, RefreshCw, Search, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -10,6 +10,7 @@ import {
   SelectTrigger,
 } from '@/components/ui/select'
 import { subscriptionFiltersStore } from '@/features/subscriptions/model/filtersStore'
+import { useSubscriptionMutations } from '@/features/subscriptions/hooks/useSubscriptionMutations'
 import { CATEGORIES } from '@/entities/subscription/model/constants'
 
 const STATUS_LABELS: Record<string, string> = {
@@ -26,6 +27,7 @@ const SORT_LABELS: Record<string, string> = {
 
 export const SubscriptionsFilters = observer(() => {
   const store = subscriptionFiltersStore
+  const { resetDemo } = useSubscriptionMutations()
 
   return (
     <div className="flex h-full flex-col gap-4 rounded-lg border bg-card p-4">
@@ -112,16 +114,27 @@ export const SubscriptionsFilters = observer(() => {
         </Select>
       </div>
 
-      <label className="mt-auto flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted">
-        <input
-          type="checkbox"
-          checked={store.onlyUpcoming}
-          onChange={(e) => store.setOnlyUpcoming(e.target.checked)}
-          className="h-4 w-4 rounded border-border"
-        />
-        <Filter size={14} className="text-muted-foreground" />
-        Ближайшие 7 дней
-      </label>
+      <div className="mt-auto space-y-2">
+        <label className="flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted">
+          <input
+            type="checkbox"
+            checked={store.onlyUpcoming}
+            onChange={(e) => store.setOnlyUpcoming(e.target.checked)}
+            className="h-4 w-4 rounded border-border"
+          />
+          <Filter size={14} className="text-muted-foreground" />
+          Ближайшие 7 дней
+        </label>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full text-muted-foreground"
+          onClick={() => resetDemo.mutate()}
+        >
+          <RefreshCw size={14} className="mr-2" />
+          Сбросить демо-данные
+        </Button>
+      </div>
     </div>
   )
 })

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { subscriptionsApi } from '@/entities/subscription/api/subscriptionsApi'
+import { budgetStore } from '@/features/budget/model/budgetStore'
 import type { Subscription } from '@/entities/subscription/model/types'
 
 export function useSubscriptionMutations() {
@@ -41,5 +42,15 @@ export function useSubscriptionMutations() {
     onError: () => toast.error('Не удалось удалить подписку'),
   })
 
-  return { create, update, remove }
+  const resetDemo = useMutation({
+    mutationFn: () => subscriptionsApi.resetDemo(),
+    onSuccess: () => {
+      invalidate()
+      if (budgetStore.limit === null) budgetStore.setLimit(3000)
+      toast.success('Демо-данные сброшены')
+    },
+    onError: () => toast.error('Не удалось сбросить демо-данные'),
+  })
+
+  return { create, update, remove, resetDemo }
 }

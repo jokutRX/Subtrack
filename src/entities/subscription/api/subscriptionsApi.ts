@@ -1,40 +1,33 @@
-import { apiCall } from '@/shared/api/client'
+import { addDays, subMonths } from 'date-fns'
 import type { Subscription } from '../model/types'
 
 const KEY = 'subtrack_subscriptions'
 
-const seed: Subscription[] = [
-  {
-    id: '1',
-    name: 'Netflix',
-    category: 'Entertainment',
-    price: 799,
-    currency: 'RUB',
-    billingCycle: 'monthly',
-    nextBillingAt: '2026-08-20',
-    status: 'active',
-    createdAt: '2026-01-01T10:00:00Z',
-  },
-  {
-    id: '2',
-    name: 'iCloud',
-    category: 'Cloud',
-    price: 149,
-    currency: 'RUB',
-    billingCycle: 'monthly',
-    nextBillingAt: '2026-08-16',
-    status: 'active',
-    createdAt: '2026-01-01T10:00:00Z',
-  },
-]
+function buildSeed(): Subscription[] {
+  const now = new Date()
+  const d = (days: number) => addDays(now, days).toISOString()
+  const created = (monthsAgo: number) => subMonths(now, monthsAgo).toISOString()
+
+  return [
+    { id: '1', name: 'Кинопоиск', category: 'Кинотеатры', price: 349, currency: 'RUB', billingCycle: 'monthly', nextBillingAt: d(2), status: 'active', createdAt: created(14) },
+    { id: '2', name: 'Spotify', category: 'Музыка', price: 299, currency: 'RUB', billingCycle: 'monthly', nextBillingAt: d(5), status: 'active', createdAt: created(20) },
+    { id: '3', name: 'iCloud 200 ГБ', category: 'Облачные хранилища', price: 149, currency: 'RUB', billingCycle: 'monthly', nextBillingAt: d(1), status: 'active', createdAt: created(26) },
+    { id: '4', name: 'PS Plus', category: 'Игры', price: 5490, currency: 'RUB', billingCycle: 'yearly', nextBillingAt: d(40), status: 'active', createdAt: created(10) },
+    { id: '5', name: 'ChatGPT Plus', category: 'Работа и продуктивность', price: 20, currency: 'USD', billingCycle: 'monthly', nextBillingAt: d(6), status: 'active', createdAt: created(8) },
+    { id: '6', name: 'VPN Pro', category: 'VPN', price: 350, currency: 'RUB', billingCycle: 'monthly', nextBillingAt: d(3), status: 'active', createdAt: created(5) },
+    { id: '7', name: 'Coursera', category: 'Образование', price: 3200, currency: 'RUB', billingCycle: 'yearly', nextBillingAt: d(75), status: 'active', createdAt: created(7) },
+    { id: '8', name: 'Netflix', category: 'Кинотеатры', price: 799, currency: 'RUB', billingCycle: 'monthly', nextBillingAt: d(12), status: 'active', createdAt: created(3) },
+    { id: '9', name: 'Strava', category: 'Спорт и здоровье', price: 450, currency: 'RUB', billingCycle: 'monthly', nextBillingAt: d(18), status: 'active', createdAt: created(2) },
+    { id: '10', name: 'Notion', category: 'Работа и продуктивность', price: 900, currency: 'RUB', billingCycle: 'monthly', nextBillingAt: d(25), status: 'archived', createdAt: created(12) },
+  ]
+}
 
 function read(): Subscription[] {
   const raw = localStorage.getItem(KEY)
-  if (!raw) {
-    localStorage.setItem(KEY, JSON.stringify(seed))
-    return seed
-  }
-  return JSON.parse(raw)
+  if (raw) return JSON.parse(raw) as Subscription[]
+  const seed = buildSeed()
+  localStorage.setItem(KEY, JSON.stringify(seed))
+  return seed
 }
 
 function write(list: Subscription[]) {
@@ -42,28 +35,34 @@ function write(list: Subscription[]) {
 }
 
 export const subscriptionsApi = {
-  list: () => apiCall(async () => read()),
-  
-  create: (data: Omit<Subscription, 'id' | 'createdAt'>) =>
-    apiCall(async () => {
-      const item: Subscription = {
-        ...data,
-        id: crypto.randomUUID(),
-        createdAt: new Date().toISOString(),
-      }
-      write([item, ...read()])
-      return item
-    }),
-  
-  update: (id: string, data: Partial<Subscription>) =>
-    apiCall(async () => {
-      const list = read().map((s) => (s.id === id ? { ...s, ...data } : s))
-      write(list)
-      return list.find((s) => s.id === id)!
-    }),
-  
-  remove: (id: string) =>
-    apiCall(async () => {
-      write(read().filter((s) => s.id !== id))
-    }),
+  list: (): Promise<Subscription[]> => Promise.resolve(read()),
+
+  create: (data: Omit<Subscription, 'id' | 'createdAt'>): Promise<Subscription> => {
+    const sub: Subscription = {
+      ...data,
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+    }
+    write([sub, ...read()])
+    return Promise.resolve(sub)
+  },
+
+  update: (id: string, data: Partial<Subscription>): Promise<Subscription> => {
+    const list = read()
+    const idx = list.findIndex((s) => s.id === id)
+    if (idx === -1) throw new Error('Subscription not found')
+    list[idx] = { ...list[idx], ...data }
+    write(list)
+    return Promise.resolve(list[idx])
+  },
+
+  remove: (id: string): Promise<void> => {
+    write(read().filter((s) => s.id !== id))
+    return Promise.resolve()
+  },
+
+  resetDemo: (): Promise<void> => {
+    write(buildSeed())
+    return Promise.resolve()
+  },
 }

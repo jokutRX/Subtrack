@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { observer } from 'mobx-react-lite'
-import { Plus } from 'lucide-react'
+import { Plus, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -9,12 +9,14 @@ import { SubscriptionsFilters } from '@/widgets/subscriptions/ui/SubscriptionsFi
 import { SubscriptionsTable } from '@/widgets/subscriptions/ui/SubscriptionsTable'
 import { SubscriptionsEmptyState } from '@/widgets/subscriptions/ui/SubscriptionsEmptyState'
 import { SubscriptionFormDialog } from '@/features/subscriptions/ui/SubscriptionFormDialog'
+import { WhatIfDialog } from '@/features/whatif/ui/WhatIfDialog'
 import { useSubscriptions } from '@/features/subscriptions/hooks/useSubscriptions'
 import { useFilteredSubscriptions } from '@/features/subscriptions/hooks/useFilteredSubscriptions'
 import { subscriptionFiltersStore } from '@/features/subscriptions/model/filtersStore'
 
 export const SubscriptionsPage = observer(() => {
   const [addOpen, setAddOpen] = useState(false)
+  const [whatIfOpen, setWhatIfOpen] = useState(false)
   const { data: all } = useSubscriptions()
   const { data: filtered, isLoading, isError } = useFilteredSubscriptions()
 
@@ -32,9 +34,14 @@ export const SubscriptionsPage = observer(() => {
                 Контроль регулярных платежей и расходов
               </p>
             </div>
-            <Button onClick={() => setAddOpen(true)}>
-              <Plus size={16} className="mr-2" /> Добавить
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => setWhatIfOpen(true)}>
+                <Sparkles size={16} className="mr-2" /> Что если…
+              </Button>
+              <Button onClick={() => setAddOpen(true)}>
+                <Plus size={16} className="mr-2" /> Добавить
+              </Button>
+            </div>
           </div>
           <StatsCards />
         </div>
@@ -62,6 +69,7 @@ export const SubscriptionsPage = observer(() => {
       )}
 
       <SubscriptionFormDialog open={addOpen} onOpenChange={setAddOpen} />
+      <WhatIfDialog open={whatIfOpen} onOpenChange={setWhatIfOpen} />
     </div>
   )
 })

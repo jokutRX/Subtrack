@@ -1,7 +1,10 @@
+import { useState } from 'react'
+import { observer } from 'mobx-react-lite'
 import {
   ArrowRight,
   CalendarClock,
   CreditCard,
+  Pencil,
   Tag,
   TrendingUp,
   Wallet,
@@ -19,6 +22,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useSubscriptions } from '@/features/subscriptions/hooks/useSubscriptions'
 import { formatCurrency } from '@/shared/lib/format'
+import { budgetStore } from '@/features/budget/model/budgetStore'
+import { BudgetLimitDialog } from '@/features/budget/ui/BudgetLimitDialog'
 import {
   formatBillingDate,
   getDaysUntilBilling,
@@ -84,7 +89,8 @@ function MiniAreaChart({
   )
 }
 
-export function StatsCards() {
+export const StatsCards = observer(() => {
+  const [budgetOpen, setBudgetOpen] = useState(false)
   const { data } = useSubscriptions()
   const list = data ?? []
   const active = list.filter((s) => s.status === 'active')
@@ -95,6 +101,15 @@ export function StatsCards() {
   const avgCheck = active.length
     ? Math.round(monthlyTotal / active.length)
     : 0
+
+  const limit = budgetStore.limit
+  const percent = limit ? Math.round((monthlyTotal / limit) * 100) : 0
+  const over = limit !== null && monthlyTotal > limit
+  const barColor = over
+    ? 'bg-destructive'
+    : percent >= 80
+      ? 'bg-amber-500'
+      : 'bg-primary'
 
   const addedThisMonth = active.filter((s) =>
     isThisMonth(parseISO(s.createdAt)),
@@ -124,7 +139,16 @@ export function StatsCards() {
       <Card className="h-full">
         <CardContent className="flex h-full flex-col px-5 py-4">
           <div className="flex items-start justify-between gap-2">
-            <p className="text-sm text-muted-foreground">Расходы в месяц</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm text-muted-foreground">Расходы в месяц</p>
+              <button
+                className="text-muted-foreground/50 transition-colors hover:text-foreground"
+                onClick={() => setBudgetOpen(true)}
+                aria-label="Изменить лимит"
+              >
+                <Pencil size={12} />
+              </button>
+            </div>
             <Badge
               variant="outline"
               className="gap-1 rounded-full font-normal text-muted-foreground"
@@ -135,6 +159,26 @@ export function StatsCards() {
           <p className="mt-3 text-3xl font-semibold tracking-tight tabular-nums">
             {formatCurrency(monthlyTotal, 'RUB')}
           </p>
+
+          {limit !== null && (
+            <div className="mt-3 space-y-1">
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className={`h-full rounded-full transition-all ${barColor}`}
+                  style={{ width: `${Math.min(percent, 100)}%` }}
+                />
+              </div>
+              <p
+                className={`text-xs ${
+                  over ? 'font-medium text-destructive' : 'text-muted-foreground'
+                }`}
+              >
+                {over
+                  ? `Лимит превышен на ${formatCurrency(monthlyTotal - limit, 'RUB')}`
+                  : `Осталось ${formatCurrency(limit - monthlyTotal, 'RUB')} из ${formatCurrency(limit, 'RUB')}`}
+              </p>
+            </div>
+          )}
 
           <MiniAreaChart data={forecast} formatTick={rubTick} />
 
@@ -218,6 +262,8 @@ export function StatsCards() {
           </div>
         </CardContent>
       </Card>
+
+      <BudgetLimitDialog open={budgetOpen} onOpenChange={setBudgetOpen} />
     </div>
   )
-}
+})

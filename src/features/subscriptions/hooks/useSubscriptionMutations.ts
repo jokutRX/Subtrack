@@ -1,34 +1,44 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { subscriptionsApi } from '@/entities/subscription/api/subscriptionsApi'
 import type { Subscription } from '@/entities/subscription/model/types'
-import { toast } from 'sonner'
 
-export const useSubscriptionMutations = () => {
+export function useSubscriptionMutations() {
   const queryClient = useQueryClient()
+  const invalidate = () =>
+    queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
 
   const create = useMutation({
-    mutationFn: subscriptionsApi.create,
+    mutationFn: (data: Omit<Subscription, 'id' | 'createdAt'>) =>
+      subscriptionsApi.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
-      toast.success('Subscription created')
+      invalidate()
+      toast.success('Подписка добавлена')
     },
+    onError: () => toast.error('Не удалось добавить подписку'),
   })
 
   const update = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Subscription> }) =>
       subscriptionsApi.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
-      toast.success('Subscription updated')
+    onSuccess: (sub) => {
+      invalidate()
+      toast.success(
+        sub.status === 'archived'
+          ? 'Подписка перемещена в архив'
+          : 'Изменения сохранены',
+      )
     },
+    onError: () => toast.error('Не удалось сохранить изменения'),
   })
 
   const remove = useMutation({
-    mutationFn: subscriptionsApi.remove,
+    mutationFn: (id: string) => subscriptionsApi.remove(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
-      toast.success('Subscription removed')
+      invalidate()
+      toast.success('Подписка удалена')
     },
+    onError: () => toast.error('Не удалось удалить подписку'),
   })
 
   return { create, update, remove }

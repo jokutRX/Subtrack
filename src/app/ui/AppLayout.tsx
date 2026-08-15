@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite'
 import { Moon, Sun, Wallet } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/sonner'
+import { NotificationsBell } from '@/widgets/notifications/ui/NotificationsBell'
 import { themeStore } from '@/features/theme/model/themeStore'
 
 export const AppLayout = observer(({ children }: { children: ReactNode }) => {
@@ -16,14 +17,17 @@ export const AppLayout = observer(({ children }: { children: ReactNode }) => {
             </div>
             <span className="text-lg font-semibold tracking-tight">SubTrack</span>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => themeStore.toggle()}
-            aria-label="Переключить тему"
-          >
-            {themeStore.theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-          </Button>
+          <div className="flex items-center gap-1">
+            <NotificationsBell />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => themeStore.toggle()}
+              aria-label="Переключить тему"
+            >
+              {themeStore.theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            </Button>
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-[1400px] px-6 py-8">{children}</main>

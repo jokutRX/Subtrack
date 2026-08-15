@@ -49,11 +49,10 @@ export function StatsCards() {
   const nearest = upcoming[0]
 
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
-      {/* Расходы в месяц */}
-      <Card>
-        <CardContent className="px-5 py-4">
-          <div className="flex items-center justify-between gap-2">
+    <div className="grid flex-1 gap-4 sm:grid-cols-3">
+      <Card className="h-full">
+        <CardContent className="flex h-full flex-col px-5 py-4">
+          <div className="flex items-start justify-between gap-2">
             <p className="text-sm text-muted-foreground">Расходы в месяц</p>
             <Badge
               variant="outline"
@@ -62,10 +61,10 @@ export function StatsCards() {
               <Wallet size={12} /> ≈ {perDay} ₽/день
             </Badge>
           </div>
-          <p className="mt-2 text-3xl font-semibold tracking-tight tabular-nums">
+          <p className="mt-3 text-3xl font-semibold tracking-tight tabular-nums">
             {formatCurrency(monthlyTotal, 'RUB')}
           </p>
-          <div className="mt-4 space-y-1">
+          <div className="mt-auto space-y-1 pt-4">
             <p className="flex items-center gap-1.5 text-sm font-medium">
               <CreditCard size={14} /> {active.length} активных подписок
             </p>
@@ -76,10 +75,9 @@ export function StatsCards() {
         </CardContent>
       </Card>
 
-      {/* Активные подписки */}
-      <Card>
-        <CardContent className="px-5 py-4">
-          <div className="flex items-center justify-between gap-2">
+      <Card className="h-full">
+        <CardContent className="flex h-full flex-col px-5 py-4">
+          <div className="flex items-start justify-between gap-2">
             <p className="text-sm text-muted-foreground">Активные подписки</p>
             {addedThisMonth > 0 ? (
               <Badge className="gap-1 rounded-full border-transparent bg-green-500/10 font-normal text-green-600 dark:text-green-400">
@@ -94,25 +92,22 @@ export function StatsCards() {
               </Badge>
             )}
           </div>
-          <p className="mt-2 text-3xl font-semibold tracking-tight tabular-nums">
+          <p className="mt-3 text-3xl font-semibold tracking-tight tabular-nums">
             {active.length}
           </p>
-          <div className="mt-4 space-y-1">
+          <div className="mt-auto space-y-1 pt-4">
             <p className="flex items-center gap-1.5 text-sm font-medium">
               <Tag size={14} />
               {topCategory ? `Топ: ${topCategory}` : 'Пока нет подписок'}
             </p>
-            <p className="text-sm text-muted-foreground">
-              В архиве: {archived}
-            </p>
+            <p className="text-sm text-muted-foreground">В архиве: {archived}</p>
           </div>
         </CardContent>
       </Card>
 
-      {/* Списания за 7 дней */}
-      <Card>
-        <CardContent className="px-5 py-4">
-          <div className="flex items-center justify-between gap-2">
+      <Card className="h-full">
+        <CardContent className="flex h-full flex-col px-5 py-4">
+          <div className="flex items-start justify-between gap-2">
             <p className="text-sm text-muted-foreground">Списания за 7 дней</p>
             <Badge
               variant="outline"
@@ -125,16 +120,18 @@ export function StatsCards() {
               <CalendarClock size={12} /> {upcoming.length} списаний
             </Badge>
           </div>
-          <p className="mt-2 text-3xl font-semibold tracking-tight tabular-nums">
+          <p className="mt-3 text-3xl font-semibold tracking-tight tabular-nums">
             {formatCurrency(upcomingTotal, 'RUB')}
           </p>
-          <div className="mt-4 space-y-1">
+          <div className="mt-auto space-y-1 pt-4">
             <p className="flex items-center gap-1.5 text-sm font-medium">
               <ArrowRight size={14} />
               {nearest ? `Ближайшее: ${nearest.name}` : 'Нет ближайших списаний'}
             </p>
             <p className="text-sm text-muted-foreground">
-              {nearest ? formatBillingDate(nearest.nextBillingAt) : 'Все списания дальше недели'}
+              {nearest
+                ? formatBillingDate(nearest.nextBillingAt)
+                : 'Все списания дальше недели'}
             </p>
           </div>
         </CardContent>

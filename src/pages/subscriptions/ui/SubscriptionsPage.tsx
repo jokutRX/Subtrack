@@ -18,32 +18,35 @@ export const SubscriptionsPage = observer(() => {
   const { data: all } = useSubscriptions()
   const { data: filtered, isLoading, isError } = useFilteredSubscriptions()
 
-  const hasActive = (all ?? []).some((s) => s.status === 'active')
+  const hasAny = (all ?? []).length > 0
   const showEmpty = !isLoading && !isError && filtered.length === 0
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Подписки</h2>
-          <p className="text-sm text-muted-foreground">
-            Контроль регулярных платежей и расходов
-          </p>
+      <div className="grid items-stretch gap-6 lg:grid-cols-[1fr_340px]">
+        <div className="flex flex-col gap-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-tight">Подписки</h2>
+              <p className="text-sm text-muted-foreground">
+                Контроль регулярных платежей и расходов
+              </p>
+            </div>
+            <Button onClick={() => setAddOpen(true)}>
+              <Plus size={16} className="mr-2" /> Добавить
+            </Button>
+          </div>
+          <StatsCards />
         </div>
-        <Button onClick={() => setAddOpen(true)}>
-          <Plus size={16} className="mr-2" /> Добавить
-        </Button>
+        <SubscriptionsFilters />
       </div>
-
-      <StatsCards />
-      <SubscriptionsFilters />
 
       {isLoading && <Skeleton className="h-64 w-full" />}
       {isError && <p className="text-destructive">Не удалось загрузить данные</p>}
 
       {showEmpty ? (
         <SubscriptionsEmptyState
-          hasFilters={subscriptionFiltersStore.isActive || hasActive}
+          hasFilters={hasAny}
           onAdd={() => setAddOpen(true)}
           onReset={() => subscriptionFiltersStore.reset()}
         />

@@ -1,0 +1,11 @@
+@"
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vscode/
+.DS_Store
+*.db
+.venv/
+backend/subtrack.db
+"@ | Out-File -Encoding utf8 .gitignore

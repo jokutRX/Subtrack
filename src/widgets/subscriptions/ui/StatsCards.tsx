@@ -20,6 +20,7 @@ import {
 } from 'recharts'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { AnimatedNumber } from '@/shared/ui/AnimatedNumber'
 import { useSubscriptions } from '@/features/subscriptions/hooks/useSubscriptions'
 import { formatCurrency } from '@/shared/lib/format'
 import { budgetStore } from '@/features/budget/model/budgetStore'
@@ -157,7 +158,10 @@ export const StatsCards = observer(() => {
             </Badge>
           </div>
           <p className="mt-3 text-3xl font-semibold tracking-tight tabular-nums">
-            {formatCurrency(monthlyTotal, 'RUB')}
+            <AnimatedNumber
+              value={monthlyTotal}
+              format={(n) => formatCurrency(n, 'RUB')}
+            />
           </p>
 
           {limit !== null && (
@@ -212,7 +216,7 @@ export const StatsCards = observer(() => {
             )}
           </div>
           <p className="mt-3 text-3xl font-semibold tracking-tight tabular-nums">
-            {active.length}
+            <AnimatedNumber value={active.length} />
           </p>
 
           <MiniAreaChart data={growth} formatTick={countTick} />
@@ -244,7 +248,10 @@ export const StatsCards = observer(() => {
             </Badge>
           </div>
           <p className="mt-3 text-3xl font-semibold tracking-tight tabular-nums">
-            {formatCurrency(upcomingTotal, 'RUB')}
+            <AnimatedNumber
+              value={upcomingTotal}
+              format={(n) => formatCurrency(n, 'RUB')}
+            />
           </p>
 
           <MiniAreaChart data={week} formatTick={rubTick} />

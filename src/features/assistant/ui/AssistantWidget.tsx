@@ -78,7 +78,7 @@ export function AssistantWidget() {
   return (
     <>
       {open && (
-        <div className="fixed bottom-20 right-4 z-50 flex h-[520px] w-[calc(100vw-2rem)] max-w-[380px] flex-col overflow-hidden rounded-xl border bg-background shadow-2xl">
+        <div className="assistant-panel fixed bottom-20 right-4 z-50 flex h-[520px] w-[calc(100vw-2rem)] max-w-[380px] flex-col overflow-hidden rounded-xl border bg-background shadow-2xl">
           <div className="flex items-center justify-between border-b px-4 py-3">
             <div className="flex items-center gap-2">
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground">
@@ -112,11 +112,11 @@ export function AssistantWidget() {
           </MessageScrollerProvider>
 
           <div className="border-t p-3">
-            <div className="mb-2 flex flex-wrap gap-1.5">
+            <div className="mb-2 grid grid-cols-2 gap-1.5">
               {SUGGESTIONS.map((s) => (
                 <button
                   key={s}
-                  className="rounded-full border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  className="rounded-full border px-2.5 py-1.5 text-left text-xs leading-snug text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   onClick={() => submit(s)}
                 >
                   {s}

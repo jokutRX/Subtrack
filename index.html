@@ -1,10 +1,33 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>subtrack</title>
+    <title>SubTrack — контроль подписок</title>
+    <meta
+      name="description"
+      content="SubTrack — трекер регулярных платежей: следи за списаниями, лимитами и экономь на подписках."
+    />
+    <meta name="theme-color" content="#09090b" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="SubTrack — контроль подписок" />
+    <meta
+      property="og:description"
+      content="Сколько ты реально тратишь на подписки? Считает, напоминает и подсказывает, где сэкономить."
+    />
+    <meta property="og:locale" content="ru_RU" />
+    <script>
+      try {
+        var t = localStorage.getItem('subtrack_theme')
+        if (
+          t === 'dark' ||
+          (!t && matchMedia('(prefers-color-scheme: dark)').matches)
+        ) {
+          document.documentElement.classList.add('dark')
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

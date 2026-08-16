@@ -89,3 +89,10 @@ input[type='number'] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+/* Заблюренный фон под модальными окнами */
+[data-slot='dialog-overlay'],
+[data-slot='alert-dialog-overlay'] {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}

@@ -57,3 +57,24 @@
     @apply bg-background text-foreground;
   }
 }
+/* Тонкий скроллбар в панели ассистента */
+.assistant-panel * {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.assistant-panel:hover * {
+  scrollbar-color: hsl(0 0% 60% / 0.35) transparent;
+}
+.assistant-panel *::-webkit-scrollbar {
+  width: 4px;
+}
+.assistant-panel *::-webkit-scrollbar-track {
+  background: transparent;
+}
+.assistant-panel *::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 2px;
+}
+.assistant-panel:hover *::-webkit-scrollbar-thumb {
+  background: hsl(0 0% 60% / 0.35);
+}

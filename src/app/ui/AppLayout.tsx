@@ -4,9 +4,13 @@ import { Moon, Sun, Wallet } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/sonner'
 import { NotificationsBell } from '@/widgets/notifications/ui/NotificationsBell'
+import { AssistantWidget } from '@/features/assistant/ui/AssistantWidget'
+import { useBillingReminders } from '@/features/notifications/hooks/useBillingReminders'
 import { themeStore } from '@/features/theme/model/themeStore'
 
 export const AppLayout = observer(({ children }: { children: ReactNode }) => {
+  useBillingReminders()
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
@@ -31,6 +35,7 @@ export const AppLayout = observer(({ children }: { children: ReactNode }) => {
         </div>
       </header>
       <main className="mx-auto max-w-[1400px] px-6 py-8">{children}</main>
+      <AssistantWidget />
       <Toaster />
     </div>
   )

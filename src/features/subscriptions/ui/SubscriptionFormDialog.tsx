@@ -1,39 +1,28 @@
-import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { useState } from 'react'
+import { format } from 'date-fns'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from '@/components/ui/select'
-import { useSubscriptionMutations } from '@/features/subscriptions/hooks/useSubscriptionMutations'
-import { CATEGORIES } from '@/entities/subscription/model/constants'
+import { useSubscriptionMutations } from '../hooks/useSubscriptionMutations'
+import {
+  BILLING_CYCLE_LABELS,
+  CATEGORIES,
+} from '@/entities/subscription/model/constants'
+import type { BillingCycle } from '@/entities/subscription/model/types'
 
-const schema = z.object({
-  name: z.string().min(2, 'Минимум 2 символа'),
-  category: z.string().min(1, 'Выбери категорию'),
-  price: z
-    .string()
-    .min(1, 'Укажи цену')
-    .refine((v) => Number(v) > 0, 'Цена должна быть больше 0'),
-  currency: z.enum(['RUB', 'USD', 'EUR']),
-  billingCycle: z.enum(['weekly', 'monthly', 'yearly']),
-  nextBillingAt: z.string().min(1, 'Укажи дату'),
-})
-
-type FormValues = z.infer<typeof schema>
+const CURRENCIES = ['RUB', 'USD', 'EUR'] as const
 
 interface Props {
   open: boolean
@@ -42,67 +31,91 @@ interface Props {
 
 export function SubscriptionFormDialog({ open, onOpenChange }: Props) {
   const { create } = useSubscriptionMutations()
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    reset,
-    formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      name: '',
-      category: '',
-      price: '',
-      currency: 'RUB',
-      billingCycle: 'monthly',
-      nextBillingAt: '',
-    },
-  })
+  const today = format(new Date(), 'yyyy-MM-dd')
 
-  useEffect(() => {
-    if (open) reset()
-  }, [open, reset])
+  const [name, setName] = useState('')
+  const [category, setCategory] = useState('')
+  const [price, setPrice] = useState('')
+  const [currency, setCurrency] = useState<'RUB' | 'USD' | 'EUR'>('RUB')
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly')
+  const [nextBillingAt, setNextBillingAt] = useState('')
+  const [dateError, setDateError] = useState(false)
 
-  const onSubmit = handleSubmit((values) => {
+  const reset = () => {
+    setName('')
+    setCategory('')
+    setPrice('')
+    setCurrency('RUB')
+    setBillingCycle('monthly')
+    setNextBillingAt('')
+    setDateError(false)
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (nextBillingAt < today) {
+      setDateError(true)
+      return
+    }
+
     create.mutate(
       {
-        ...values,
-        price: Number(values.price),
+        name: name.trim(),
+        category,
+        price: Number(price),
+        currency,
+        billingCycle,
+        nextBillingAt,
         status: 'active',
       },
-      { onSuccess: () => onOpenChange(false) },
+      {
+        onSuccess: () => {
+          reset()
+          onOpenChange(false)
+        },
+      },
     )
-  })
+  }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v) reset()
+        onOpenChange(v)
+      }}
+    >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Новая подписка</DialogTitle>
         </DialogHeader>
-        <form onSubmit={onSubmit} className="grid gap-4">
-          <div className="grid gap-2">
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid gap-1.5">
             <Label>Название</Label>
-            <Input placeholder="Netflix" {...register('name')} />
-            {errors.name && (
-              <p className="text-sm text-destructive">{errors.name.message}</p>
-            )}
+            <Input
+              placeholder="Netflix"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
           </div>
 
-          <div className="grid gap-2">
+          <div className="grid gap-1.5">
             <Label>Категория</Label>
             <Select
+              value={category}
               onValueChange={(v) => {
-                if (typeof v === 'string') {
-                  setValue('category', v, { shouldValidate: true })
-                }
+                if (typeof v === 'string') setCategory(v)
               }}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Выбери категорию" />
+                <span className="truncate">
+                  {category === '' ? 'Выбери категорию' : category}
+                </span>
               </SelectTrigger>
-              <SelectContent className="w-full">
+              <SelectContent>
                 {CATEGORIES.map((c) => (
                   <SelectItem key={c} value={c}>
                     {c}
@@ -110,75 +123,90 @@ export function SubscriptionFormDialog({ open, onOpenChange }: Props) {
                 ))}
               </SelectContent>
             </Select>
-            {errors.category && (
-              <p className="text-sm text-destructive">{errors.category.message}</p>
-            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-1.5">
               <Label>Цена</Label>
-              <Input type="number" placeholder="799" {...register('price')} />
-              {errors.price && (
-                <p className="text-sm text-destructive">{errors.price.message}</p>
-              )}
+              <Input
+                type="number"
+                min="0"
+                step="any"
+                placeholder="799"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                required
+              />
             </div>
-            <div className="grid gap-2">
+            <div className="grid gap-1.5">
               <Label>Валюта</Label>
               <Select
-                defaultValue="RUB"
+                value={currency}
                 onValueChange={(v) => {
-                  if (typeof v === 'string') {
-                    setValue('currency', v as FormValues['currency'])
-                  }
+                  if (typeof v === 'string')
+                    setCurrency(v as 'RUB' | 'USD' | 'EUR')
                 }}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue />
+                  <span>{currency}</span>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="RUB">₽ RUB</SelectItem>
-                  <SelectItem value="USD">$ USD</SelectItem>
-                  <SelectItem value="EUR">€ EUR</SelectItem>
+                  {CURRENCIES.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-1.5">
               <Label>Цикл</Label>
               <Select
-                defaultValue="monthly"
+                value={billingCycle}
                 onValueChange={(v) => {
-                  if (typeof v === 'string') {
-                    setValue('billingCycle', v as FormValues['billingCycle'])
-                  }
+                  if (typeof v === 'string')
+                    setBillingCycle(v as BillingCycle)
                 }}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue />
+                  <span>{BILLING_CYCLE_LABELS[billingCycle]}</span>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="weekly">Еженедельно</SelectItem>
-                  <SelectItem value="monthly">Ежемесячно</SelectItem>
-                  <SelectItem value="yearly">Ежегодно</SelectItem>
+                  {(
+                    Object.keys(BILLING_CYCLE_LABELS) as BillingCycle[]
+                  ).map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {BILLING_CYCLE_LABELS[c]}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid gap-2">
+            <div className="grid gap-1.5">
               <Label>Следующее списание</Label>
-              <Input type="date" {...register('nextBillingAt')} />
-              {errors.nextBillingAt && (
-                <p className="text-sm text-destructive">
-                  {errors.nextBillingAt.message}
+              <Input
+                type="date"
+                min={today}
+                value={nextBillingAt}
+                onChange={(e) => {
+                  setNextBillingAt(e.target.value)
+                  setDateError(e.target.value < today)
+                }}
+                required
+              />
+              {dateError && (
+                <p className="text-xs text-destructive">
+                  Дата не может быть в прошлом
                 </p>
               )}
             </div>
           </div>
 
-          <Button type="submit" disabled={create.isPending}>
-            {create.isPending ? 'Сохраняю...' : 'Добавить'}
+          <Button type="submit" className="w-full" disabled={create.isPending}>
+            Добавить
           </Button>
         </form>
       </DialogContent>

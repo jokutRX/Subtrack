@@ -1,11 +1,28 @@
-@"
+# зависимости и сборка
 node_modules/
 dist/
 dist-ssr/
+*.tsbuildinfo
+
+# локальные файлы
 *.local
 .vscode/
 .DS_Store
+
+# база данных
 *.db
 .venv/
 backend/subtrack.db
-"@ | Out-File -Encoding utf8 .gitignore
+
+# тесты
+coverage/
+
+# логи
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# окружение и деплой
+.env
+.env.local
+.vercel

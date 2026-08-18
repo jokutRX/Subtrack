@@ -1,0 +1,9 @@
+[build]
+  command = "corepack enable && pnpm install --frozen-lockfile && pnpm build"
+  publish = "dist"
+
+# SPA fallback: любой маршрут отдаёт index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

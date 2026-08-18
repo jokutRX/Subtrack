@@ -11,17 +11,17 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(import.meta.dirname, './src'),
     },
   },
   build: {
     target: 'es2022',
+    cssMinify: 'esbuild', // отключаем lightningcss — он ломает Tailwind-классы [[2]]
     rollupOptions: {
       output: {
         manualChunks(id) {
           if (!id.includes('node_modules')) return
 
-          // Каждый крупный вендор — отдельный чанк
           if (id.includes('/recharts/')) return 'vendor-charts'
           if (id.includes('/mobx') || id.includes('@tanstack/react-query'))
             return 'vendor-state'

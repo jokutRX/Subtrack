@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { observer } from 'mobx-react-lite'
 import { Plus, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -8,11 +8,22 @@ import { StatsCards } from '@/widgets/subscriptions/ui/StatsCards'
 import { SubscriptionsFilters } from '@/widgets/subscriptions/ui/SubscriptionsFilters'
 import { SubscriptionsTable } from '@/widgets/subscriptions/ui/SubscriptionsTable'
 import { SubscriptionsEmptyState } from '@/widgets/subscriptions/ui/SubscriptionsEmptyState'
-import { SubscriptionFormDialog } from '@/features/subscriptions/ui/SubscriptionFormDialog'
-import { WhatIfDialog } from '@/features/whatif/ui/WhatIfDialog'
 import { useSubscriptions } from '@/features/subscriptions/hooks/useSubscriptions'
 import { useFilteredSubscriptions } from '@/features/subscriptions/hooks/useFilteredSubscriptions'
 import { subscriptionFiltersStore } from '@/features/subscriptions/model/filtersStore'
+
+// Диалоги уезжают в отдельные чанки — грузятся только при первом открытии
+const SubscriptionFormDialog = lazy(() =>
+  import('@/features/subscriptions/ui/SubscriptionFormDialog').then((m) => ({
+    default: m.SubscriptionFormDialog,
+  })),
+)
+
+const WhatIfDialog = lazy(() =>
+  import('@/features/whatif/ui/WhatIfDialog').then((m) => ({
+    default: m.WhatIfDialog,
+  })),
+)
 
 export const SubscriptionsPage = observer(() => {
   const [addOpen, setAddOpen] = useState(false)
@@ -30,7 +41,7 @@ export const SubscriptionsPage = observer(() => {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-semibold tracking-tight">Подписки</h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-muted-foreground text-muted-foreground">
                 Контроль регулярных платежей и расходов
               </p>
             </div>
@@ -68,8 +79,14 @@ export const SubscriptionsPage = observer(() => {
         )
       )}
 
-      <SubscriptionFormDialog open={addOpen} onOpenChange={setAddOpen} />
-      <WhatIfDialog open={whatIfOpen} onOpenChange={setWhatIfOpen} />
+      <Suspense fallback={null}>
+        {addOpen && (
+          <SubscriptionFormDialog open={addOpen} onOpenChange={setAddOpen} />
+        )}
+        {whatIfOpen && (
+          <WhatIfDialog open={whatIfOpen} onOpenChange={setWhatIfOpen} />
+        )}
+      </Suspense>
     </div>
   )
 })

@@ -1,12 +1,18 @@
-import type { ReactNode } from 'react'
+import { lazy, Suspense, type ReactNode } from 'react'
 import { observer } from 'mobx-react-lite'
 import { Moon, Sun, Wallet } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/sonner'
 import { NotificationsBell } from '@/widgets/notifications/ui/NotificationsBell'
-import { AssistantWidget } from '@/features/assistant/ui/AssistantWidget'
 import { useBillingReminders } from '@/features/notifications/hooks/useBillingReminders'
 import { themeStore } from '@/features/theme/model/themeStore'
+
+// Чат с AI уезжает в отдельный чанк — доедет, когда станет нужен
+const AssistantWidget = lazy(() =>
+  import('@/features/assistant/ui/AssistantWidget').then((m) => ({
+    default: m.AssistantWidget,
+  })),
+)
 
 export const AppLayout = observer(({ children }: { children: ReactNode }) => {
   useBillingReminders()
@@ -35,7 +41,9 @@ export const AppLayout = observer(({ children }: { children: ReactNode }) => {
         </div>
       </header>
       <main className="mx-auto max-w-[1400px] px-6 py-8">{children}</main>
-      <AssistantWidget />
+      <Suspense fallback={null}>
+        <AssistantWidget />
+      </Suspense>
       <Toaster />
     </div>
   )

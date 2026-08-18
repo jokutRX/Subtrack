@@ -17,6 +17,7 @@ import { AnimatedNumber } from '@/shared/ui/AnimatedNumber'
 import { useSubscriptions } from '@/features/subscriptions/hooks/useSubscriptions'
 import { formatCurrency } from '@/shared/lib/format'
 import { budgetStore } from '@/features/budget/model/budgetStore'
+import type { Subscription } from '@/entities/subscription/model/types'
 import {
   formatBillingDate,
   getDaysUntilBilling,
@@ -44,7 +45,7 @@ export const StatsCards = observer(() => {
   const [budgetOpen, setBudgetOpen] = useState(false)
   const { data } = useSubscriptions()
   const list = data ?? []
-  const active = list.filter((s) => s.status === 'active')
+  const active = list.filter((s: Subscription) => s.status === 'active')
   const archived = list.length - active.length
 
   const monthlyTotal = getTotalMonthlyCost(list)
@@ -62,7 +63,7 @@ export const StatsCards = observer(() => {
       ? 'bg-amber-500'
       : 'bg-primary'
 
-  const addedThisMonth = active.filter((s) =>
+  const addedThisMonth = active.filter((s: Subscription) =>
     isThisMonth(parseISO(s.createdAt)),
   ).length
 
@@ -77,7 +78,7 @@ export const StatsCards = observer(() => {
   const upcoming = getUpcoming(list).sort(
     (a, b) => getDaysUntilBilling(a) - getDaysUntilBilling(b),
   )
-  const upcomingTotal = upcoming.reduce((sum, s) => sum + s.price, 0)
+  const upcomingTotal = upcoming.reduce((sum: number, s: Subscription) => sum + s.price, 0)
   const nearest = upcoming[0]
 
   const forecast = getMonthlyForecast(list)

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { observer } from 'mobx-react-lite'
 import {
   ArrowRight,
@@ -10,21 +10,13 @@ import {
   Wallet,
 } from 'lucide-react'
 import { isThisMonth, parseISO } from 'date-fns'
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-} from 'recharts'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 import { AnimatedNumber } from '@/shared/ui/AnimatedNumber'
 import { useSubscriptions } from '@/features/subscriptions/hooks/useSubscriptions'
 import { formatCurrency } from '@/shared/lib/format'
 import { budgetStore } from '@/features/budget/model/budgetStore'
-import { BudgetLimitDialog } from '@/features/budget/ui/BudgetLimitDialog'
 import {
   formatBillingDate,
   getDaysUntilBilling,
@@ -35,60 +27,18 @@ import {
   getWeekForecast,
 } from '@/entities/subscription/lib/calculations'
 
+// recharts уезжает в отдельный чанк — грузится после первого экрана
+const MiniAreaChart = lazy(() => import('./MiniAreaChart'))
+
+// диалог грузится только при первом открытии
+const BudgetLimitDialog = lazy(() =>
+  import('@/features/budget/ui/BudgetLimitDialog').then((m) => ({
+    default: m.BudgetLimitDialog,
+  })),
+)
+
 const rubTick = (v: number) => (v >= 1000 ? `${Math.round(v / 1000)}к` : String(v))
 const countTick = (v: number) => String(Math.round(v))
-
-function MiniAreaChart({
-  data,
-  formatTick,
-}: {
-  data: { label: string; total: number }[]
-  formatTick: (v: number) => string
-}) {
-  return (
-    <div className="mt-4 h-24 text-muted-foreground">
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
-          <defs>
-            <linearGradient id="cardAreaBlue" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.35} />
-              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.02} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid
-            strokeDasharray="3 3"
-            vertical={false}
-            stroke="currentColor"
-            strokeOpacity={0.15}
-          />
-          <XAxis
-            dataKey="label"
-            axisLine={false}
-            tickLine={false}
-            interval={0}
-            dy={4}
-            tick={{ fill: 'currentColor', fontSize: 9 }}
-          />
-          <YAxis
-            orientation="right"
-            axisLine={false}
-            tickLine={false}
-            width={34}
-            tick={{ fill: 'currentColor', fontSize: 9 }}
-            tickFormatter={formatTick}
-          />
-          <Area
-            type="monotone"
-            dataKey="total"
-            stroke="#3b82f6"
-            strokeWidth={2}
-            fill="url(#cardAreaBlue)"
-          />
-        </AreaChart>
-      </ResponsiveContainer>
-    </div>
-  )
-}
 
 export const StatsCards = observer(() => {
   const [budgetOpen, setBudgetOpen] = useState(false)
@@ -184,7 +134,9 @@ export const StatsCards = observer(() => {
             </div>
           )}
 
-          <MiniAreaChart data={forecast} formatTick={rubTick} />
+          <Suspense fallback={<Skeleton className="mt-4 h-24 w-full" />}>
+            <MiniAreaChart data={forecast} formatTick={rubTick} />
+          </Suspense>
 
           <div className="mt-auto space-y-1 pt-4">
             <p className="flex items-center gap-1.5 text-sm font-medium">
@@ -219,7 +171,9 @@ export const StatsCards = observer(() => {
             <AnimatedNumber value={active.length} />
           </p>
 
-          <MiniAreaChart data={growth} formatTick={countTick} />
+          <Suspense fallback={<Skeleton className="mt-4 h-24 w-full" />}>
+            <MiniAreaChart data={growth} formatTick={countTick} />
+          </Suspense>
 
           <div className="mt-auto space-y-1 pt-4">
             <p className="flex items-center gap-1.5 text-sm font-medium">
@@ -254,7 +208,9 @@ export const StatsCards = observer(() => {
             />
           </p>
 
-          <MiniAreaChart data={week} formatTick={rubTick} />
+          <Suspense fallback={<Skeleton className="mt-4 h-24 w-full" />}>
+            <MiniAreaChart data={week} formatTick={rubTick} />
+          </Suspense>
 
           <div className="mt-auto space-y-1 pt-4">
             <p className="flex items-center gap-1.5 text-sm font-medium">
@@ -270,7 +226,11 @@ export const StatsCards = observer(() => {
         </CardContent>
       </Card>
 
-      <BudgetLimitDialog open={budgetOpen} onOpenChange={setBudgetOpen} />
+      <Suspense fallback={null}>
+        {budgetOpen && (
+          <BudgetLimitDialog open={budgetOpen} onOpenChange={setBudgetOpen} />
+        )}
+      </Suspense>
     </div>
   )
 })
